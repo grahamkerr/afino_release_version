@@ -75,7 +75,9 @@ def relative_bics(saveresult):
     return dbic_values
     
 
-def save_afino_results(results, use_json = False, description = None):
+def save_afino_results(results, use_json = False, description = None,
+                       saveresults = False, saveresultsdir = None, saveresultsname = None,
+                       printresults = True):
     """
     This function saves the results of an AFINO analysis run to either a JSON file
     or a Pickle file.
@@ -93,8 +95,9 @@ def save_afino_results(results, use_json = False, description = None):
     """
     
 
+    if saveresultsdir == None:
     # ensure the directory to save plots exists, create it if not.
-    os.makedirs(os.path.expanduser('~/afino_repository/saves/'),exist_ok=True)
+        os.makedirs(os.path.expanduser('~/afino_repository/saves/'),exist_ok=True)
     
     analysis_summary = {}
 
@@ -103,34 +106,53 @@ def save_afino_results(results, use_json = False, description = None):
         id = r['ID']
         analysis_summary['m'+str(id)] = r
 
-    # print some info for the user
-    print(' ')
-    print('Analysis summary info:')
-    print('-----------------------------')
-    print(' ')
-    for r in results:
-        print('Lnlike m' + str(r['ID']) + ' (' + r['model'] + '): ' + str(r['lnlike']))
-    print(' ')
-    for r in results:
-        print('BIC m' + str(r['ID']) + ' (' + r['model'] + '): ' + str(r['BIC']))
-    print(' ')
-    for r in results:
-        print('rchi2 m' + str(r['ID']) + ' (' + r['model'] + '): ' + str(r['rchi2']))
-        print('prob. m' + str(r['ID']) + ' (' + r['model'] + '): ' + str(r['probability']))
-    print(' ')
-    print('-----------------------------')
-    print(' ')
-    print(' ')
+    if printresults == True:
+        # print some info for the user
+        print(' ')
+        print('Analysis summary info:')
+        print('-----------------------------')
+        print(' ')
+        for r in results:
+            print('Lnlike m' + str(r['ID']) + ' (' + r['model'] + '): ' + str(r['lnlike']))
+        print(' ')
+        for r in results:
+            print('BIC m' + str(r['ID']) + ' (' + r['model'] + '): ' + str(r['BIC']))
+        print(' ')
+        for r in results:
+            print('rchi2 m' + str(r['ID']) + ' (' + r['model'] + '): ' + str(r['rchi2']))
+            print('prob. m' + str(r['ID']) + ' (' + r['model'] + '): ' + str(r['probability']))
+        print(' ')
+        print('-----------------------------')
+        print(' ')
+        print(' ')
         
 
     # save all the results to a JSON or pickle file
-
-    if use_json:
-        fname = os.path.join(os.path.expanduser('~/afino_repository/saves/'),'afino_summary_data_' + description + '.json')
-        json.dump(analysis_summary,open(fname,'w'), cls = NumpyEncoder)
-    else:
-        fname = os.path.join(os.path.expanduser('~/afino_repository/saves/'),'afino_summary_data_' + description + '.pickle')
-        pickle.dump(analysis_summary,open(fname,'wb'))
+    if saveresults == True:
+        if use_json:
+            if saveresultsname == None:
+                if saveresultsdir == None:
+                    fname = os.path.join(os.path.expanduser('~/afino_repository/saves/'),'afino_summary_data_' + description + '.json')
+                else: 
+                    fname = os.path.join(os.path.expanduser(saveresultsdir+'/'),'afino_summary_data_' + description + '.json')
+            else:
+                if saveresultsdir == None:
+                    fname = '~/afino_repository/saves/'+saveresultsname+'.json'
+                else:
+                    fname = saveresultsdir+saveresultsname+'.json'
+            json.dump(analysis_summary,open(fname,'w'), cls = NumpyEncoder)
+        else:
+            if saveresultsname == None:
+                if saveresultsdir == None:
+                    fname = os.path.join(os.path.expanduser('~/afino_repository/saves/'),'afino_summary_data_' + description + '.pickle')
+                else: 
+                    fname = os.path.join(os.path.expanduser(saveresultsdir+'/'),'afino_summary_data_' + description + '.pickle')
+            else: 
+                if saveresultsdir == None:
+                    fname = '~/afino_repository/saves/'+saveresultsname+'.pickle'
+                else:
+                    fname = saveresultsdir+saveresultsname+'.pickle'
+            pickle.dump(analysis_summary,open(fname,'wb'))
         
 
     return analysis_summary

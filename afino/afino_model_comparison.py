@@ -6,7 +6,8 @@ from afino.afino_utils import model_string_from_id
 from afino.afino_utils import save_afino_results
 
 def model_comparison(ts,description=None,low_frequency_cutoff=None, overwrite_gauss_bounds = None,
-                         overwrite_extra_gauss_bounds = None, use_json = True, model_ids = [0,1,2]):
+                         overwrite_extra_gauss_bounds = None, use_json = True, model_ids = [0,1,2],
+                         saveresults = False, saveresultsdir = None, saveresultsname = None, printresults = True):
     """Initiate the comparison of different models to the Fourier power spectrum of a timeseries."""
     
     results = []
@@ -17,7 +18,9 @@ def model_comparison(ts,description=None,low_frequency_cutoff=None, overwrite_ga
         result['ID'] = id
         results.append(result)
 
-    analysis_summary = save_afino_results(results, description = description, use_json = use_json)
+    analysis_summary = save_afino_results(results, description = description, use_json = use_json,
+                                          saveresults = saveresults, saveresultsdir = saveresultsdir, saveresultsname = saveresultsname,
+                                          printresults = printresults)
     
    # m0 = main_analysis(ts, model='single_power_law_with_constant',low_frequency_cutoff=low_frequency_cutoff)
   

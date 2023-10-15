@@ -9,8 +9,10 @@ from afino import afino_spectral_models
 import matplotlib.pyplot as plt
 
 
-def analyse_series(times, flux, description=None, low_frequency_cutoff=None, savedir=None, overwrite_gauss_bounds = None,
-                       overwrite_extra_gauss_bounds = None, use_json = True, model_ids = [0,1,2]):
+def analyse_series(times, flux, description=None, low_frequency_cutoff=None, overwrite_gauss_bounds = None,
+                       overwrite_extra_gauss_bounds = None, use_json = True, model_ids = [0,1,2],
+                       saveplot = False, plotresults = True, savedir=None, savefilename = None,
+                       saveresults = False, saveresultsdir = None, saveresultsname = None, printresults = True):
     """
     Analyse a single, generic timeseries using the AFINO model comparison code.
     
@@ -42,13 +44,18 @@ def analyse_series(times, flux, description=None, low_frequency_cutoff=None, sav
    
     analysis_summary=model_comparison(sig_apodized,description=description, low_frequency_cutoff=low_frequency_cutoff,
                                     overwrite_gauss_bounds = overwrite_gauss_bounds, overwrite_extra_gauss_bounds = overwrite_extra_gauss_bounds, use_json = use_json,
-                                    model_ids = model_ids)
+                                    model_ids = model_ids,
+                                    saveresults = saveresults, saveresultsdir = saveresultsdir, saveresultsname = saveresultsname, printresults = printresults)
  
     
-    create_generic_summary_plot(ts, analysis_summary, description, low_frequency_cutoff=low_frequency_cutoff, savedir=savedir)
+    create_generic_summary_plot(ts, analysis_summary, description, low_frequency_cutoff=low_frequency_cutoff, savedir=savedir,
+                                saveplot = saveplot, plotresults = plotresults, savefilename = savefilename)
 
 
-def analyse_series_twobump(times, flux, description=None, low_frequency_cutoff=None, savedir=None, overwrite_gauss_bounds = None, overwrite_extra_gauss_bounds = None):
+def analyse_series_twobump(times, flux, description=None, low_frequency_cutoff=None, 
+                           overwrite_gauss_bounds = None, overwrite_extra_gauss_bounds = None,
+                            saveplot = False, plotresults = True, savedir = None, savefilename = None,
+                            saveresults = False, saveresultsdir = None, saveresultsname = None, printresults = True):
     """Analyse a single, generic timeseries using the AFINO model comparison code., with extra models"""
 
     ts = AfinoSeries(times,flux)
@@ -60,23 +67,27 @@ def analyse_series_twobump(times, flux, description=None, low_frequency_cutoff=N
     root = '~/afino_repository/tempfiles/comparisons'
    
     analysis_summary=model_comparison_mms(sig_apodized,root=root,description=description, generic=True, low_frequency_cutoff=low_frequency_cutoff,
-                                    overwrite_gauss_bounds = overwrite_gauss_bounds , overwrite_extra_gauss_bounds = overwrite_extra_gauss_bounds)
+                                    overwrite_gauss_bounds = overwrite_gauss_bounds , overwrite_extra_gauss_bounds = overwrite_extra_gauss_bounds,
+                                    saveresults = saveresults, saveresultsdir = saveresultsdir, saveresultsname = saveresultsname, printresults = printresults)
 
   
     
-    create_generic_summary_plot_twobump(ts, analysis_summary, description, low_frequency_cutoff=low_frequency_cutoff, savedir=savedir)
+    create_generic_summary_plot_twobump(ts, analysis_summary, description, low_frequency_cutoff=low_frequency_cutoff, savedir=savedir,
+                                        saveplot = saveplot, plotresults = plotresults, savefilename = savefilename)
     
     
     
-def create_generic_summary_plot(ts, analysis_summary, description, low_frequency_cutoff=None, savedir=None):
+def create_generic_summary_plot(ts, analysis_summary, description, low_frequency_cutoff=None, savedir=None,
+                                saveplot = False, plotresults = True, savefilename = None):
     """Create a summary plot showing the result of an AFINO analysis run."""
     
     import seaborn as sns
     sns.set_style('ticks',{'xtick.direction':'in','ytick.direction':'in'})
     sns.set_context('paper')
 
+    if savedir == None:
     #ensure the directory to save plots exists, create it if not.
-    os.makedirs(os.path.expanduser('~/afino_repository/plots/'),exist_ok=True)
+        os.makedirs(os.path.expanduser('~/afino_repository/plots/'),exist_ok=True)
 
     npanels = len(analysis_summary) + 1
 
@@ -146,28 +157,38 @@ def create_generic_summary_plot(ts, analysis_summary, description, low_frequency
             
             
 
-    
+    if saveplot == True:
 
-    savefilename = 'afino_summary_plot_' + description + '.pdf'
-    if savedir:
-        plt.savefig(os.path.join(savedir,savefilename))
-    else:
-        plt.savefig(os.path.join(os.path.expanduser('~/afino_repository/plots/'), savefilename ))
-    plt.close()
+        if savefilename == None:
+            savefilename = 'afino_summary_plot_' + description + '.pdf'
+        else:
+            savefilename+='.pdf'
+
+        if savedir:
+            plt.savefig(os.path.join(savedir,savefilename))
+        else:
+            plt.savefig(os.path.join(os.path.expanduser('~/afino_repository/plots/'), savefilename ))
+        
+        if plotresults == True:
+            plt.show()
+        plt.close()
 
     return
 
 
 
-def create_generic_summary_plot_twobump(ts, analysis_summary, description, low_frequency_cutoff=None, savedir=None):
+def create_generic_summary_plot_twobump(ts, analysis_summary, description, low_frequency_cutoff=None, savedir=None,
+                                        saveplot = False, plotresults = True, savefilename = None
+    ):
     """Create a summary plot showing the result of an AFINO analysis run."""
     
     import seaborn as sns
     sns.set_style('ticks',{'xtick.direction':'in','ytick.direction':'in'})
     sns.set_context('paper')
 
+    if savedir == None:
     #ensure the directory to save plots exists, create it if not.
-    os.makedirs(os.path.expanduser('~/afino_repository/plots/'),exist_ok=True)
+        os.makedirs(os.path.expanduser('~/afino_repository/plots/'),exist_ok=True)
     
    # model_comparison = pickle.load(open(model_comparison_filename,'rb'))
     BIC = analysis_summary['dBIC'] #model_comparison['BIC_ratio']
@@ -331,12 +352,18 @@ def create_generic_summary_plot_twobump(ts, analysis_summary, description, low_f
     if low_frequency_cutoff:
         plt.axvline(low_frequency_cutoff)
     
-
-    savefilename = 'summary_plot_' + description + '.pdf'
-    if savedir:
-        plt.savefig(os.path.join(savedir,savefilename))
+    if savefilename == None:
+        savefilename = 'summary_plot_' + description + '.pdf'
     else:
-        plt.savefig(os.path.join(os.path.expanduser('~/afino_repository/plots/'), savefilename ))
+        savefilename+='.pdf'
+    if saveplot == True:
+        if savedir:
+            plt.savefig(os.path.join(savedir,savefilename))
+        else:
+            plt.savefig(os.path.join(os.path.expanduser('~/afino_repository/plots/'), savefilename ))
+
+    if plotresults == True:
+        plt.show()
     plt.close()
 
     return
